@@ -161,6 +161,8 @@ def detecter_escaliers(binaire, comp):
         groupes.append(cur)
     out = []
     for g in groupes:
+        if len(g) < 8:
+            continue
         xs = [v for s in g for v in (s[0], s[2])]
         ys = [v for s in g for v in (s[1], s[3])]
         w, h = max(xs) - min(xs), max(ys) - min(ys)
@@ -168,6 +170,8 @@ def detecter_escaliers(binaire, comp):
             mx, my = (min(xs)+max(xs))//2, (min(ys)+max(ys))//2
             if comp[my, mx]:
                 out.append((min(xs), min(ys), max(xs), max(ys), len(g)))
+    if len(out) > 1:  # un seul escalier par étage : le plus grand
+        out = [max(out, key=lambda e: (e[2]-e[0]) * (e[3]-e[1]))]
     return out
 
 
@@ -255,7 +259,7 @@ def pdf_vers_maison(pdf_path, sortie="maison.glb", debug_png="debug_dessus.png")
                 d = np.hypot(cx - (x1 + ux * t), cy - (y1 + uy * t))
                 if d < bd:
                     bd, best = d, m
-            if best is not None and bd < 150:
+            if best is not None and bd < 40:
                 floor[floor.index(best)] = decouper_ouverture(best, ouv, z0, ox, oy)
         for e in escaliers:
             floor += construire_marches(e[:4], e[4], z0, ox, oy)
