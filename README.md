@@ -1,19 +1,24 @@
-# plans-MOB — Plan PDF → maison 3D
+# plans-MOB — Plan PDF + photos → maison 3D animée
 
-## Principe
-`plan.pdf` (1 page = 1 étage) → détection des murs (OpenCV : seuillage + morphologie + épaisseur + plus gros amas = bâtiment) → extrusion 3D (trimesh) → `maison.glb`.
+## Fichiers
+- `plan.pdf` — plans (1 page = 1 étage)
+- `photos/` — photos des façades (nord/sud) et de l'intérieur (salon, cuisine)
+- `plan_to_3d.py` — plan PDF → `maison.glb` (murs + ouvertures découpées + escalier)
+- `render_anim.py` — `maison` 3D texturée + `animation.gif` (visite 360°)
 
-## Utilisation (sur le Mac)
+## Utilisation (Mac)
 ```bash
-python3 -m pip install opencv-python-headless trimesh numpy pymupdf matplotlib
-python3 plan_to_3d.py plan.pdf
-open maison.glb          # aperçu 3D
+python3 -m pip install opencv-python-headless trimesh numpy pymupdf matplotlib pillow manifold3d
+python3 plan_to_3d.py plan.pdf      # -> maison.glb + debug_dessus.png
+python3 render_anim.py plan.pdf     # -> animation.gif (36 images, 360°)
+open animation.gif
 ```
-Sorties : `maison.glb` (modèle 3D 2 étages), `debug_dessus.png` (vue de dessus des murs détectés).
 
-## Échelle
-`PIXELS_PAR_METRE = 132` dans `plan_to_3d.py` (calibré sur la cote 12,12 m = 1595 px).
+## Réglages
+- Échelle : `PIXELS_PAR_METRE = 132` dans `plan_to_3d.py` (cote 12,12 m = 1595 px)
+- Textures : dictionnaire `TEXTURES` dans `render_anim.py` (nord/sud); côtés = bardage gris
+- Pour ajouter une façade est/ouest : mettre la photo dans `photos/` et ajouter une entrée dans `TEXTURES`
 
-## Limites connues
-- Quelques cloisons intérieures fines peuvent manquer ; meubles/cotes/hachures sont filtrés.
-- Portes/fenêtres/escalier : non découpés dans les murs pour l'instant (prochaine étape).
+## Limites
+- Détection de murs par vision (OpenCV) : quelques cloisons fines/portes peuvent manquer.
+- Rendu : moteur maison (peintre + homographie) — pour un rendu pro, on pourra brancher Blender.
